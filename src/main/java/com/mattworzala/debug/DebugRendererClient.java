@@ -3,14 +3,11 @@ package com.mattworzala.debug;
 import com.mattworzala.debug.network.DebugHelloPacket;
 import com.mattworzala.debug.network.DebugShapesPacket;
 import com.mattworzala.debug.render.ClientRenderer;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
@@ -23,35 +20,24 @@ import org.jetbrains.annotations.NotNull;
 public class DebugRendererClient implements ClientModInitializer {
     public static final int PROTOCOL_VERSION = 2;
     private static final Logger LOGGER = LogManager.getLogger();
+
     private final ClientRenderer renderer = new ClientRenderer();
 
     @Override
     public void onInitializeClient() {
         LOGGER.info("Waiting to render debug shapes!");
 
+        renderer.register();
+
         // Setup listeners
         ClientPlayConnectionEvents.JOIN.register(this::handleJoinGame);
         ClientPlayConnectionEvents.DISCONNECT.register(this::handleDisconnect);
-
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(this::handleRenderFabulous);
-        WorldRenderEvents.LAST.register(this::handleRenderLast);
 
         // Networking
         PayloadTypeRegistry.playC2S().register(DebugHelloPacket.PACKET_ID, DebugHelloPacket.PACKET_CODEC);
         PayloadTypeRegistry.playS2C().register(DebugShapesPacket.PACKET_ID, DebugShapesPacket.PACKET_CODEC);
 
         ClientPlayNetworking.registerGlobalReceiver(DebugShapesPacket.PACKET_ID, this::handlePacket);
-    }
-
-    private void handleRenderFabulous(WorldRenderContext ctx) {
-        if (!ctx.advancedTranslucency()) return;
-        RenderSystem.applyModelViewMatrix();
-        renderer.render(ctx.matrixStack(), ctx.camera());
-    }
-
-    private void handleRenderLast(WorldRenderContext ctx) {
-        if (ctx.advancedTranslucency()) return;
-        renderer.render(ctx.matrixStack(), ctx.camera());
     }
 
     private void handleJoinGame(ClientPlayNetworkHandler handler, PacketSender sender, MinecraftClient client) {

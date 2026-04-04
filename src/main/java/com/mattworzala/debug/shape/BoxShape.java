@@ -8,12 +8,12 @@ import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
 public record BoxShape(
-        @NotNull Vec3d min,
-        @NotNull Vec3d max,
+        Vec3d min,
+        Vec3d max,
         int faceColor,
-        @NotNull RenderLayer faceRenderLayer,
+        RenderLayer faceRenderLayer,
         int edgeColor,
-        @NotNull RenderLayer edgeRenderLayer,
+        RenderLayer edgeRenderLayer,
         float edgeWidth
 ) implements Shape {
 
@@ -34,10 +34,13 @@ public record BoxShape(
 
     @Override
     public void render(@NotNull DebugRenderContext context) {
-        if ((faceColor & 0xFF000000) != 0)
+        if ((faceColor & 0xFF000000) != 0) {
             context.submit(this::renderFaces, RenderType.QUADS, faceRenderLayer);
-        if ((edgeColor & 0xFF000000) != 0)
+        }
+        if ((edgeColor & 0xFF000000) != 0) {
+            context.setLineWidth(edgeWidth);
             context.submit(this::renderEdges, RenderType.LINES, edgeRenderLayer);
+        }
     }
 
     @Override
@@ -119,5 +122,4 @@ public record BoxShape(
         context.vertex((float) max.x, (float) min.y, (float) min.z);
         context.vertex((float) max.x, (float) min.y, (float) max.z);
     }
-
 }

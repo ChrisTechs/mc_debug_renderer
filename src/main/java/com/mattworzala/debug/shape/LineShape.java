@@ -3,7 +3,6 @@ package com.mattworzala.debug.shape;
 import com.mattworzala.debug.render.DebugRenderContext;
 import com.mattworzala.debug.render.RenderLayer;
 import com.mattworzala.debug.render.RenderType;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
@@ -44,6 +43,7 @@ public class LineShape implements Shape {
 
     @Override
     public void render(@NotNull DebugRenderContext context) {
+        context.setLineWidth(lineWidth);
         context.submit(this::render0, RenderType.LINES, renderLayer);
     }
 
@@ -54,7 +54,7 @@ public class LineShape implements Shape {
 
     private void render0(@NotNull DebugRenderContext context) {
         context.color(color);
-        RenderSystem.lineWidth(lineWidth);
+
         switch (type) {
             case SINGLE -> {
                 for (var point : points) {
