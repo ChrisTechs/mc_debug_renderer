@@ -31,18 +31,26 @@ jobs:
       - name: Execute Gradle build
         run: ./gradlew build
 
-      - name: Upload built mod JAR
+      - name: Package release ZIP
+        run: zip -j mod-jar.zip build/libs/*.jar
+
+      - name: Upload built mod JAR (optional)
         uses: actions/upload-artifact@v4.3.0
         with:
           name: mod-jar
           path: build/libs/*.jar
+
+      - name: Generate Attestations
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'mod-jar.zip'
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
           body: "Automatic release for version ${{ github.ref_name }}"
-          files: |
-            mod-jar
+          files: mod-jar.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
