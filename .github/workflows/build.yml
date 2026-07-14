@@ -1,11 +1,20 @@
 name: Run Gradle Build
 on:
-  - push
-  - pull_request
+  push:
+    branches: [ "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
 
 jobs:
   gradle:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+
     steps:
       - name: Checkout source
         uses: actions/checkout@v4.1.1
@@ -27,3 +36,13 @@ jobs:
         with:
           name: mod-jar
           path: build/libs/*.jar
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body: "Automatic release for version ${{ github.ref_name }}"
+          files: |
+            mod-jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
